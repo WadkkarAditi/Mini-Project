@@ -1,0 +1,236 @@
+/* === FONT & ROOT VARIABLES (VIBRANT THEME) === */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+
+:root {
+  --primary-color: #4A90E2;
+  --primary-hover: #357ABD;
+  --secondary-color: #50E3C2;
+  --background-color: #F9FAFB;
+  --surface-color: #FFFFFF;
+  --text-primary: #333333;
+  --text-secondary: #777777;
+  --border-color: #E5E7EB;
+  --shadow: 0 5px 15px rgba(0, 0, 0, 0.07);
+  --shadow-hover: 0 8px 25px rgba(0, 0, 0, 0.1);
+  --transition-smooth: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* === GLOBAL STYLES === */
+body {
+  font-family: 'Nunito', sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem 2rem;
+}
+
+/* === NAVIGATION BAR === */
+.main-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  padding: 1rem 2rem;
+  border-radius: 50px;
+  box-shadow: var(--shadow);
+  position: sticky;
+  top: 20px;
+  z-index: 100;
+}
+
+.logo {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--primary-color);
+  text-decoration: none;
+}
+.logo::before {
+  content: '🖨️';
+  margin-right: 10px;
+}
+
+.nav-link {
+  margin-left: 1.5rem;
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-weight: 700;
+  transition: var(--transition-smooth);
+}
+
+.nav-link:hover {
+  color: var(--primary-color);
+}
+
+/* === FORMS & INPUTS === */
+.form-container {
+  background-color: var(--surface-color);
+  padding: 3rem;
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  max-width: 480px;
+  margin: 4rem auto;
+  transition: var(--transition-smooth);
+}
+.form-container:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-hover);
+}
+
+.form-container h2 {
+  text-align: center;
+  font-weight: 800;
+  margin-top: 0;
+  margin-bottom: 2rem;
+}
+
+.form-container p {
+  text-align: center;
+  margin-top: 1.5rem;
+}
+
+.form-container a {
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+input, select {
+  display: block;
+  width: 100%;
+  padding: 14px 20px;
+  margin-bottom: 1.2rem;
+  border-radius: 50px;
+  border: 1px solid var(--border-color);
+  box-sizing: border-box;
+  font-size: 1rem;
+  font-family: 'Nunito', sans-serif;
+  transition: var(--transition-smooth);
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px rgba(74, 144, 226, 0.2);
+}
+
+/* === BUTTONS === */
+button {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  border-radius: 50px;
+  background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+  color: white;
+  font-weight: 800;
+  font-size: 1.1rem;
+  border: none;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  box-shadow: var(--shadow);
+}
+
+button:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: var(--shadow-hover);
+}
+
+/* === DASHBOARD === */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.header h2::before {
+  content: '👋';
+  margin-right: 10px;
+}
+
+.logout-btn {
+  width: auto;
+  padding: 10px 25px;
+  font-size: 1rem;
+  background: #ff4d4d;
+} /* <-- THE MISSING BRACE WAS ADDED HERE */
+
+.upload-form, .order-history {
+  background-color: var(--surface-color);
+  padding: 2.5rem;
+  border-radius: 20px;
+  max-width: 100%;
+  margin: 2rem 0;
+  box-shadow: var(--shadow);
+}
+
+.upload-form h3::before {
+  content: '📄 ';
+  margin-right: 8px;
+}
+.order-history h3::before {
+  content: '📜 ';
+  margin-right: 8px;
+}
+
+.order-history h3, .upload-form h3 {
+    margin-top: 0;
+    font-weight: 700;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1.5rem;
+}
+
+th, td {
+  text-align: left;
+  padding: 16px;
+  border-bottom: 1px solid var(--border-color);
+  vertical-align: middle;
+}
+
+th {
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+td {
+    font-weight: 600;
+}
+
+/* Status Badges */
+.status {
+  padding: 6px 12px;
+  border-radius: 50px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #fff;
+  text-align: center;
+}
+.status.pending::before { content: '⏳ '; }
+.status.pending { background-color: #ff9800; }
+
+.status.in-progress::before { content: '⚙️ '; }
+.status.in-progress { background-color: #2196F3; }
+
+.status.delivered::before { content: '✅ '; }
+.status.delivered { background-color: #4CAF50; }
+
+.status-select {
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background-color: var(--surface-color);
+    color: var(--text-primary);
+    font-weight: 600;
+}
