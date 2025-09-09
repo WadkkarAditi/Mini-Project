@@ -2,10 +2,13 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
+
 import authRoutes from './routes/auth.js';
 import orderRoutes from './routes/Orders.js';
 import paymentRoutes from './routes/payment.js';
 import adminRoutes from './routes/admin.js';
+import snackRoutes from './routes/snacks.js';
+import stationaryRoutes from './routes/stationary.js'; // Ensure this is imported
 
 dotenv.config();
 const app = express();
@@ -20,6 +23,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/snacks', snackRoutes);
+app.use('/api/stationary', stationaryRoutes); // Ensure this route is used
 
 // Connect to MongoDB and Start Server
 mongoose.set('strictQuery', true);

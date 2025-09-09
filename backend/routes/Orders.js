@@ -11,29 +11,28 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// POST /api/orders/create
-router.post('/create', auth, upload.single('document'), async (req, res) => {
+// POST /api/orders/place-product-order - For Snacks & Stationary
+router.post('/place-product-order', auth, async (req, res) => {
     try {
-        const { copies, color, sided, pages, location, contactNo } = req.body;
-        if (!req.file) return res.status(400).json({ message: "No document uploaded." });
+        const { items, location, contactNo } = req.body;
 
-        const costPerPage = color === 'true' ? 10 : 4;
-        const amount = parseInt(pages) * parseInt(copies) * costPerPage;
+        // Calculate total amount on the backend for security
+        const amount = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
         const newOrder = new Order({
             user: req.userId,
-            fileName: req.file.originalname,
-            filePath: req.file.path,
-            contactNo, location,
-            settings: { copies, color, sided },
+            orderType: 'products',
+            items: items,
+            location,
+            contactNo,
             amount,
-            status: 'Created',
+            status: 'Paid', // Dummy payment status
         });
 
         await newOrder.save();
         res.status(201).json(newOrder);
     } catch (error) {
-        res.status(500).json({ message: "Server error creating order." });
+        res.status(500).json({ message: "Server error while placing product order." });
     }
 });
 
