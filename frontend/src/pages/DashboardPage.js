@@ -52,6 +52,12 @@ const DashboardPage = () => {
       setNewOrderData({ ...newOrderData, [name]: value });
     }
   };
+  
+  const calculateCost = () => {
+    if (!newOrderData.pages || !newOrderData.copies) return 0;
+    const costPerPage = newOrderData.color === 'true' ? 10 : 4;
+    return parseInt(newOrderData.pages) * parseInt(newOrderData.copies) * costPerPage;
+  };
 
   // --- DUMMY PAYMENT & ORDER FUNCTION ---
   const handleDummyOrderAndPay = async (e) => {
@@ -62,21 +68,25 @@ const DashboardPage = () => {
     }
 
     try {
+      const amount = calculateCost(); // Calculate cost first
+
       const formData = new FormData();
       formData.append('document', newOrderData.file);
       formData.append('pages', newOrderData.pages);
       formData.append('copies', newOrderData.copies);
-      formData.append('color', newOrderData.color);
-      formData.append('sided', newOrderData.sided);
+      formData.append('printOptions', newOrderData.color); // Match backend: 'printOptions'
       formData.append('location', newOrderData.location);
       formData.append('contactNo', newOrderData.contactNo);
+      formData.append('amount', amount); // Add amount to the form data
 
-      await axios.post('http://localhost:5000/api/orders/create', formData, {
+      // CORRECTED URL: Removed '/create' from the end
+      await axios.post('http://localhost:5000/api/orders', formData, {
         headers: { 'Authorization': `Bearer ${user.token}`, 'Content-Type': 'multipart/form-data' }
       });
       
       alert('Payment Successful! Your order has been placed.');
 
+      // Refresh order list after successful submission
       const { data } = await axios.get('http://localhost:5000/api/orders/my-orders', {
          headers: { 'Authorization': `Bearer ${user.token}` }
       });
@@ -88,12 +98,6 @@ const DashboardPage = () => {
     }
   };
 
-  const calculateCost = () => {
-    if (!newOrderData.pages || !newOrderData.copies) return 0;
-    const costPerPage = newOrderData.color === 'true' ? 10 : 4;
-    return parseInt(newOrderData.pages) * parseInt(newOrderData.copies) * costPerPage;
-  };
-
   return (
     <div>
       <div className="header">
@@ -102,10 +106,10 @@ const DashboardPage = () => {
       </div>
 
       <motion.div 
-      className="upload-form"
-      initial={{ opacity: 0, y: 50 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8 }}
+        className="upload-form"
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
       >
         <h3>Place a New Order & Pay 🚀</h3>
         <form onSubmit={handleDummyOrderAndPay}>
@@ -156,7 +160,8 @@ const DashboardPage = () => {
             {orders.length > 0 ? (
               orders.map(order => (
                 <tr key={order._id}>
-                  <td>{order.fileName}</td>
+                  {/* The backend saves documentPath, so we need to derive the filename */}
+                  <td>{order.documentPath ? order.documentPath.split('-').slice(1).join('-') : 'N/A'}</td>
                   <td>{order.location}</td>
                   <td>₹{order.amount}</td>
                   <td><span className={`status ${order.status.toLowerCase().replace(/\s/g, '-')}`}>{order.status}</span></td>
