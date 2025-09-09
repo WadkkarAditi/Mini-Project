@@ -11,11 +11,32 @@ import snackRoutes from './routes/snacks.js';
 import stationaryRoutes from './routes/stationary.js'; // Ensure this is imported
 
 dotenv.config();
+
+if (!process.env.JWT_SECRET) {
+    console.error("FATAL ERROR: JWT_SECRET is not defined in .env file");
+    process.exit(1);
+}
+// --- END CHECK ---
+
 const app = express();
+// ... rest of your file
+
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+
+// --- CORS CONFIGURATION ---
+// This will fix the "Provisional headers are shown" error by allowing
+// your frontend to send requests with the Authorization header.
+const corsOptions = {
+  origin: 'http://localhost:3000', // Allow only your frontend to access
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Specify allowed HTTP methods
+  allowedHeaders: ['Content-Type', 'Authorization'], // Allow these specific headers
+};
+
+app.use(cors(corsOptions)); // Use the detailed cors options
+// --- END CORS CONFIGURATION ---
+
 app.use(express.json());
 
 // API Routes
