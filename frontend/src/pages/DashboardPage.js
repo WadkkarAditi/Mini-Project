@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { motion } from 'framer-motion';
 
 const DashboardPage = () => {
   const navigate = useNavigate();
@@ -10,7 +11,7 @@ const DashboardPage = () => {
   const [newOrderData, setNewOrderData] = useState({
     file: null,
     fileName: '',
-    pages: '', // New field for number of pages
+    pages: '',
     copies: 1,
     color: 'false',
     sided: 'single',
@@ -18,7 +19,7 @@ const DashboardPage = () => {
     contactNo: ''
   });
 
-  // Fetch user's order history when the page loads
+  // Fetch user's order history
   useEffect(() => {
     const fetchOrders = async () => {
       try {
@@ -52,8 +53,8 @@ const DashboardPage = () => {
     }
   };
 
-  // --- MAIN FUNCTION TO HANDLE ORDER CREATION AND PAYMENT ---
-  const handleOrderAndPay = async (e) => {
+  // --- DUMMY PAYMENT & ORDER FUNCTION ---
+  const handleDummyOrderAndPay = async (e) => {
     e.preventDefault();
     if (!newOrderData.file || !newOrderData.pages) {
       alert("Please select a file and enter the number of pages.");
@@ -61,7 +62,6 @@ const DashboardPage = () => {
     }
 
     try {
-      // Step 1: Create the Order in the backend
       const formData = new FormData();
       formData.append('document', newOrderData.file);
       formData.append('pages', newOrderData.pages);
@@ -71,55 +71,25 @@ const DashboardPage = () => {
       formData.append('location', newOrderData.location);
       formData.append('contactNo', newOrderData.contactNo);
 
-      const { data: createdOrder } = await axios.post('http://localhost:5000/api/orders/create', formData, {
+      await axios.post('http://localhost:5000/api/orders/create', formData, {
         headers: { 'Authorization': `Bearer ${user.token}`, 'Content-Type': 'multipart/form-data' }
       });
       
-      // Step 2: Create a Razorpay Order
-      const { data: razorpayOrder } = await axios.post('http://localhost:5000/api/payment/create-order', 
-        { orderId: createdOrder._id }, 
-        { headers: { 'Authorization': `Bearer ${user.token}` } }
-      );
+      alert('Payment Successful! Your order has been placed.');
 
-      // Step 3: Open Razorpay Checkout
-      const options = {
-        key: 'YOUR_RAZORPAY_KEY_ID', // Replace with your actual Key ID
-        amount: razorpayOrder.amount,
-        currency: 'INR',
-        name: 'PrintJet',
-        description: `Payment for Order: ${createdOrder.fileName}`,
-        order_id: razorpayOrder.id,
-        handler: async (response) => {
-          // Step 4: Verify the payment on success
-          await axios.post('http://localhost:5000/api/payment/verify', response, {
-             headers: { 'Authorization': `Bearer ${user.token}` }
-          });
-          alert('Payment Successful! Your order has been placed.');
-          // Refresh the order list
-          const { data } = await axios.get('http://localhost:5000/api/orders/my-orders', {
-             headers: { 'Authorization': `Bearer ${user.token}` }
-          });
-          setOrders(data);
-        },
-        prefill: { name: user.result.name, contact: newOrderData.contactNo },
-        theme: { color: '#4A90E2' }
-      };
-
-      const rzp1 = new window.Razorpay(options);
-      rzp1.on('payment.failed', function (response){
-        alert("Payment Failed. Please try again.");
+      const { data } = await axios.get('http://localhost:5000/api/orders/my-orders', {
+         headers: { 'Authorization': `Bearer ${user.token}` }
       });
-      rzp1.open();
+      setOrders(data);
 
     } catch (error) {
       console.error(error);
-      alert('An error occurred. Please try again.');
+      alert('An error occurred while placing the order. Please try again.');
     }
   };
 
-  // --- Calculate and display cost in real-time ---
   const calculateCost = () => {
-    if (!newOrderData.pages) return 0;
+    if (!newOrderData.pages || !newOrderData.copies) return 0;
     const costPerPage = newOrderData.color === 'true' ? 10 : 4;
     return parseInt(newOrderData.pages) * parseInt(newOrderData.copies) * costPerPage;
   };
@@ -131,9 +101,14 @@ const DashboardPage = () => {
         <button onClick={handleLogout} className="logout-btn">Logout</button>
       </div>
 
-      <div className="upload-form">
+      <motion.div 
+      className="upload-form"
+      initial={{ opacity: 0, y: 50 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8 }}
+      >
         <h3>Place a New Order & Pay 🚀</h3>
-        <form onSubmit={handleOrderAndPay}>
+        <form onSubmit={handleDummyOrderAndPay}>
           <label>Select Document:</label>
           <input type="file" name="file" onChange={handleFormChange} required />
           
@@ -157,14 +132,13 @@ const DashboardPage = () => {
             <option value="true">Color (₹10/page)</option>
           </select>
           
-          {/* Real-time cost display */}
           <div style={{textAlign: 'center', margin: '20px 0', fontSize: '1.5rem', fontWeight: 'bold'}}>
             Estimated Cost: ₹{calculateCost()}
           </div>
 
           <button type="submit">Pay & Place Order</button>
         </form>
-      </div>
+      </motion.div>
 
       <div className="order-history">
         <h3>Your Order History</h3>

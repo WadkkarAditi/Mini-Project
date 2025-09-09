@@ -1,52 +1,42 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+// We have removed 'useNavigate' from this import statement
+import axios from 'axios';
 
 const RegisterPage = () => {
-  const navigate = useNavigate();
-  const [formData, setFormData] = useState({ name: '', email: '' });
+  const [formData, setFormData] = useState({ name: '', email: '', password: '' });
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // --- SIMULATED REGISTRATION ---
-    // In a real app, this data would go to a backend API.
-    // For our demo, we'll save the new user's info in localStorage.
-    localStorage.setItem(formData.email, JSON.stringify({ name: formData.name }));
+    try {
+      const { data } = await axios.post('http://localhost:5000/api/auth/register', formData);
 
-    alert('Registration successful! Please proceed to login.');
-    navigate('/login'); // Redirect to login page
+      localStorage.setItem('profile', JSON.stringify(data));
+
+      // This line handles the redirect, so useNavigate is not needed.
+      window.location.href = '/services';
+
+    } catch (error) {
+      console.error(error);
+      alert(error.response?.data?.message || 'Registration failed. Please try again.');
+    }
   };
 
   return (
-    <div className="form-container">
-      <h2>Create Your Account</h2>
+    <div className="register-form">
+      <h3>Create an Account</h3>
       <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          name="name"
-          placeholder="Full Name"
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="email"
-          name="email"
-          placeholder="Email Address"
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          required
-        />
+        <label>Name:</label>
+        <input type="text" name="name" placeholder="Your Name" onChange={handleChange} required />
+        <label>Email Address:</label>
+        <input type="email" name="email" placeholder="your.email@example.com" onChange={handleChange} required />
+        <label>Password:</label>
+        <input type="password" name="password" placeholder="Choose a secure password" onChange={handleChange} required minLength="6" />
         <button type="submit">Register</button>
       </form>
-      <p>Already have an account? <Link to="/login">Login here</Link></p>
     </div>
   );
 };

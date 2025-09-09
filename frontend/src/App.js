@@ -1,57 +1,79 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
+
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
-import AdminPage from './pages/AdminPage'; // Make sure this is imported
+import AdminPage from './pages/AdminPage';
+import ServicesPage from './pages/ServicesPage';
+import SnacksPage from './pages/SnacksPage';
+import StationaryPage from './pages/StationaryPage';
+import CartPage from './pages/CartPage';
 import './App.css';
 
-function App() {
-  // Get user info from localStorage
+const AppRoutes = () => {
+  const location = useLocation();
   const user = JSON.parse(localStorage.getItem('profile'));
+
+  const pageVariants = { /* ... animation code ... */ };
+  const pageTransition = { /* ... animation code ... */ };
+  
+  const AnimatedPage = ({ children }) => (
+    <motion.div initial="initial" animate="in" exit="out" variants={pageVariants} transition={pageTransition}>
+      {children}
+    </motion.div>
+  );
+
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={<AnimatedPage>{!user ? <LoginPage /> : <Navigate to="/services" />}</AnimatedPage>} />
+        <Route path="/login" element={<AnimatedPage>{!user ? <LoginPage /> : <Navigate to="/services" />}</AnimatedPage>} />
+        <Route path="/register" element={<AnimatedPage>{!user ? <RegisterPage /> : <Navigate to="/services" />}</AnimatedPage>} />
+        <Route path="/services" element={<AnimatedPage>{user ? <ServicesPage /> : <Navigate to="/login" />}</AnimatedPage>} />
+        <Route path="/dashboard" element={<AnimatedPage>{user ? <DashboardPage /> : <Navigate to="/login" />}</AnimatedPage>} />
+        <Route path="/stationary" element={<AnimatedPage>{user ? <StationaryPage /> : <Navigate to="/login" />}</AnimatedPage>} />
+        <Route path="/snacks" element={<AnimatedPage>{user ? <SnacksPage /> : <Navigate to="/login" />}</AnimatedPage>} />
+        <Route path="/cart" element={<AnimatedPage>{user ? <CartPage /> : <Navigate to="/login" />}</AnimatedPage>} />
+        <Route path="/admin" element={<AnimatedPage>{user?.result?.role === 'admin' ? <AdminPage /> : <Navigate to="/login" />}</AnimatedPage>} />
+      </Routes>
+    </AnimatePresence>
+  );
+};
+
+function App() {
+  const user = JSON.parse(localStorage.getItem('profile'));
+
+  const handleLogout = () => {
+    localStorage.clear();
+    window.location.href = '/login';
+  };
 
   return (
     <Router>
       <div className="container">
         <nav className="main-nav">
-          <Link to="/" className="logo">PrintJet</Link>
-          
-          {/* This div will contain all the navigation links */}
-          <div>
+          <Link to={user ? "/services" : "/"} className="logo">PrintJet</Link>
+          <div className="nav-links-container">
             {!user ? (
-              // If no user is logged in, show Login and Register links
               <>
                 <Link to="/login" className="nav-link">Login</Link>
                 <Link to="/register" className="nav-link">Register</Link>
               </>
             ) : (
-              // If a user is logged in, show the Dashboard link
-              <Link to="/dashboard" className="nav-link">Dashboard</Link>
-            )}
-
-            {/* --- ADMIN LINK LOGIC --- */}
-            {/* Only show the Admin Panel link if the user's role is 'admin' */}
-            {user?.result?.role === 'admin' && (
-              <Link to="/admin" className="nav-link">Admin Panel</Link>
+              <div className="nav-user-actions"> {/* This is the new container */}
+                {user?.result?.role === 'admin' && (
+                  <Link to="/admin" className="nav-link">Admin Panel</Link>
+                )}
+                <Link to="/cart" className="nav-link">Cart🛒</Link>
+                <button onClick={handleLogout} className="logout-btn nav-link">Logout</button>
+              </div>
             )}
           </div>
         </nav>
-
         <main>
-          <Routes>
-            {/* Standard user routes */}
-            <Route path="/" element={!user ? <LoginPage /> : <Navigate to="/dashboard" />} />
-            <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/dashboard" />} />
-            <Route path="/register" element={!user ? <RegisterPage /> : <Navigate to="/dashboard" />} />
-            <Route path="/dashboard" element={user ? <DashboardPage /> : <Navigate to="/login" />} />
-            
-            {/* --- PROTECTED ADMIN ROUTE --- */}
-            {/* Only allow access to the /admin route if the user's role is 'admin' */}
-            <Route 
-              path="/admin" 
-              element={user?.result?.role === 'admin' ? <AdminPage /> : <Navigate to="/login" />} 
-            />
-          </Routes>
+          <AppRoutes />
         </main>
       </div>
     </Router>
