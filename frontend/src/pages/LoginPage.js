@@ -1,55 +1,55 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { GoogleLogin } from '@react-oauth/google';
 
 const LoginPage = () => {
-  const navigate = useNavigate();
-  const [email, setEmail] = useState('');
+  const [formData, setFormData] = useState({ email: '', password: '' });
 
-  const handleLogin = (e) => {
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // --- CORRECTED SIMULATED LOGIN ---
-    // 1. Look up the user by email in localStorage
-    const savedUser = JSON.parse(localStorage.getItem(email));
-
-    if (!savedUser) {
-      alert('No user found with this email. Please register first.');
-      return;
+    try {
+      const { data } = await axios.post('http://localhost:5000/api/auth/login', formData);
+      localStorage.setItem('profile', JSON.stringify(data));
+      window.location.href = '/services';
+    } catch (error) {
+      alert(error.response?.data?.message || 'Login failed.');
     }
+  };
 
-    // 2. Create the profile object with the correct name
-    const profileData = {
-      result: { name: savedUser.name },
-      token: 'fake-jwt-token-12345'
-    };
-
-    // 3. Save the correct profile to be used by the dashboard
-    localStorage.setItem('profile', JSON.stringify(profileData));
-
-    // 4. Navigate to the dashboard
-    navigate('/dashboard');
-    window.location.reload();
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+        const { data } = await axios.post('http://localhost:5000/api/auth/google-login', {
+            token: credentialResponse.credential
+        });
+        localStorage.setItem('profile', JSON.stringify(data));
+        window.location.href = '/services';
+    } catch (error) {
+        console.error("Google Login Failed", error);
+    }
   };
 
   return (
-    <div className="form-container">
-      <h2>Welcome Back</h2>
-      <form onSubmit={handleLogin}>
-        <input
-          type="email"
-          name="email"
-          placeholder="Email Address"
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          required
-        />
+    <div className="login-form">
+      <h3>Login to Your Account</h3>
+      <form onSubmit={handleSubmit}>
+        <label>Email Address:</label>
+        <input type="email" name="email" placeholder="your.email@example.com" onChange={handleChange} required />
+        <label>Password:</label>
+        <input type="password" name="password" placeholder="Enter your password" onChange={handleChange} required />
         <button type="submit">Login</button>
       </form>
-      <p>Don't have an account? <Link to="/register">Create one</Link></p>
+      <div style={{ textAlign: 'center', margin: '1.5rem 0', color: 'var(--text-secondary)' }}>OR</div>
+      <GoogleLogin
+        onSuccess={handleGoogleSuccess}
+        onError={() => console.log('Login Failed')}
+        theme="filled_blue"
+        text="signin_with"
+        shape="pill"
+      />
     </div>
   );
 };

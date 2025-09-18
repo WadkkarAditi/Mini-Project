@@ -69,6 +69,13 @@ main {
   color: var(--text-primary);
 }
 
+.nav-user-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+
 /* --- Forms & Inputs --- */
 .upload-form, .login-form, .register-form, .cart-checkout {
   background-color: var(--surface-color);
@@ -194,7 +201,7 @@ tbody tr:hover {
   font-size: 0.8rem;
   color: #fff;
 }
-.status.paid { background-color: #27ae60; }
+.status.paid, .status.pending-payment { background-color: #27ae60; }
 .status.in-progress { background-color: #f39c12; }
 .status.delivered { background-color: #3498db; }
 
@@ -252,9 +259,7 @@ tbody tr:hover {
   transition: transform 0.3s ease;
   padding: 1.5rem;
 }
-.product-card:hover {
-  transform: translateY(-5px);
-}
+.product-card:hover { transform: translateY(-5px); }
 .product-card-content {
   padding: 0;
   display: flex;
@@ -344,14 +349,16 @@ tbody tr:hover {
   transform: none;
 }
 
-/* --- Navigation Links Alignment --- */
-.nav-links-container {
-  display: flex;
-  align-items: center;
+/* --- My Orders Page Item List --- */
+.order-item-list {
+  list-style-type: none;
+  padding-left: 0;
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
 }
-.nav-user-actions {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
+
+.order-item-list li {
+  margin-bottom: 0.25rem;
 }
 

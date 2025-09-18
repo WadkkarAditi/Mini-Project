@@ -13,7 +13,7 @@ const StationaryPage = () => {
         const { data } = await axios.get('http://localhost:5000/api/stationary');
         setItems(data);
         setIsLoading(false);
-      } catch (error) { // The typo has been fixed here
+      } catch (error) {
         console.error("Failed to fetch stationary items", error);
         setIsLoading(false);
       }
@@ -54,6 +54,9 @@ const StationaryPage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: index * 0.1 }}
           >
+            {/* This tag is responsible for showing the image */}
+            <img src={item.imageUrl} alt={item.name} className="product-card-img" />
+            
             <div className="product-card-content">
               <h3>{item.name}</h3>
               <p className="product-description">{item.description}</p>

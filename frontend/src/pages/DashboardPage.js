@@ -1,12 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 
 const DashboardPage = () => {
-  const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('profile'));
-
   const [orders, setOrders] = useState([]);
   const [newOrderData, setNewOrderData] = useState({
     file: null,
@@ -18,31 +15,24 @@ const DashboardPage = () => {
     location: 'MIT Library',
     contactNo: ''
   });
+  const campusLocations = [ "MIT Globe", "MIT Library", "MIT Main Gate", "MIT Back Gate", "Vyas Building", "Ganga Building", "Atri Building", "Dhruv Building", "Chanakya Building", "Gargi Building", "Vivekanand Hall" ];
 
-  // Fetch user's order history
+  const fetchOrders = useCallback(async () => {
+    try {
+      const { data } = await axios.get('http://localhost:5000/api/orders/my-orders', {
+        headers: { 'Authorization': `Bearer ${user.token}` }
+      });
+      setOrders(data);
+    } catch (error) {
+      console.error("Could not fetch orders", error);
+    }
+  }, [user.token]);
+
   useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const { data } = await axios.get('http://localhost:5000/api/orders/my-orders', {
-          headers: { 'Authorization': `Bearer ${user.token}` }
-        });
-        setOrders(data);
-      } catch (error) {
-        console.error("Could not fetch orders", error);
-      }
-    };
     if (user?.token) {
       fetchOrders();
     }
-  }, [user?.token]);
-
-  const campusLocations = [ "MIT Globe", "MIT Library", "MIT Main Gate", "MIT Back Gate", "Vyas Building", "Ganga Building", "Atri Building", "Dhruv Building", "Chanakya Building", "Gargi Building", "Vivekanand Hall" ];
-
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate('/login');
-    window.location.reload();
-  };
+  }, [user?.token, fetchOrders]);
 
   const handleFormChange = (e) => {
     const { name, value, type, files } = e.target;
@@ -53,13 +43,9 @@ const DashboardPage = () => {
     }
   };
 
-  // --- DUMMY PAYMENT & ORDER FUNCTION ---
-  const handleDummyOrderAndPay = async (e) => {
+  const handlePlaceOrder = async (e) => {
     e.preventDefault();
-    if (!newOrderData.file || !newOrderData.pages) {
-      alert("Please select a file and enter the number of pages.");
-      return;
-    }
+    if (!newOrderData.file || !newOrderData.pages) return alert("Please select a file and enter the number of pages.");
 
     try {
       const formData = new FormData();
@@ -71,20 +57,49 @@ const DashboardPage = () => {
       formData.append('location', newOrderData.location);
       formData.append('contactNo', newOrderData.contactNo);
 
-      await axios.post('http://localhost:5000/api/orders/create', formData, {
+      const { data: createdOrder } = await axios.post('http://localhost:5000/api/orders/create', formData, {
         headers: { 'Authorization': `Bearer ${user.token}`, 'Content-Type': 'multipart/form-data' }
       });
       
-      alert('Payment Successful! Your order has been placed.');
-
-      const { data } = await axios.get('http://localhost:5000/api/orders/my-orders', {
-         headers: { 'Authorization': `Bearer ${user.token}` }
-      });
-      setOrders(data);
+      handleRealPayment(createdOrder);
 
     } catch (error) {
-      console.error(error);
-      alert('An error occurred while placing the order. Please try again.');
+      console.error("Error placing order:", error.response || error);
+      alert('An error occurred. Please try again.');
+    }
+  };
+
+  const handleRealPayment = async (order) => {
+    try {
+      const { data: razorpayOrder } = await axios.post('http://localhost:5000/api/payment/create-order', 
+        { orderId: order._id }, 
+        { headers: { 'Authorization': `Bearer ${user.token}` } }
+      );
+
+      const options = {
+        key: 'YOUR_RAZORPAY_TEST_KEY_ID', // Replace with your key
+        amount: razorpayOrder.amount,
+        currency: 'INR',
+        name: 'PrintJet',
+        description: `Payment for ${order.fileName}`,
+        order_id: razorpayOrder.id,
+        handler: async (response) => {
+          await axios.post('http://localhost:5000/api/payment/verify', response, {
+             headers: { 'Authorization': `Bearer ${user.token}` }
+          });
+          alert('Payment Successful!');
+          fetchOrders();
+        },
+        prefill: { name: user.result.name, contact: newOrderData.contactNo },
+        theme: { color: '#e94560' }
+      };
+
+      const rzp1 = new window.Razorpay(options);
+      rzp1.on('payment.failed', () => alert("Payment Failed. Please try again."));
+      rzp1.open();
+    } catch (error) {
+      alert("Error initiating payment. Check console for details.");
+      console.error("Payment initiation failed:", error.response || error);
     }
   };
 
@@ -98,48 +113,38 @@ const DashboardPage = () => {
     <div>
       <div className="header">
         <h2>Welcome, {user?.result?.name || 'User'}!</h2>
-        <button onClick={handleLogout} className="logout-btn">Logout</button>
       </div>
-
       <motion.div 
-      className="upload-form"
-      initial={{ opacity: 0, y: 50 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8 }}
+        className="upload-form"
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
       >
-        <h3>Place a New Order & Pay 🚀</h3>
-        <form onSubmit={handleDummyOrderAndPay}>
+        <h3>Place a New Xerox Order 🚀</h3>
+        <form onSubmit={handlePlaceOrder}>
           <label>Select Document:</label>
           <input type="file" name="file" onChange={handleFormChange} required />
-          
-          <label>Number of Pages in Document:</label>
+          <label>Number of Pages:</label>
           <input type="number" name="pages" placeholder="e.g., 20" min="1" value={newOrderData.pages} onChange={handleFormChange} required />
-
           <label>Contact No 📱:</label>
-          <input type="tel" name="contactNo" placeholder="Your 10-digit mobile number" value={newOrderData.contactNo} onChange={handleFormChange} pattern="[0-9]{10}" required />
-
+          <input type="tel" name="contactNo" placeholder="10-digit mobile number" value={newOrderData.contactNo} onChange={handleFormChange} pattern="[0-9]{10}" required />
           <label>Delivery Location 📍:</label>
           <select name="location" value={newOrderData.location} onChange={handleFormChange}>
             {campusLocations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
           </select>
-          
           <label>Number of Copies:</label>
           <input type="number" name="copies" placeholder="e.g., 1" min="1" value={newOrderData.copies} onChange={handleFormChange} required />
-
           <label>Print Options:</label>
           <select name="color" value={newOrderData.color} onChange={handleFormChange}>
             <option value="false">Black & White (₹4/page)</option>
             <option value="true">Color (₹10/page)</option>
           </select>
-          
           <div style={{textAlign: 'center', margin: '20px 0', fontSize: '1.5rem', fontWeight: 'bold'}}>
             Estimated Cost: ₹{calculateCost()}
           </div>
-
-          <button type="submit">Pay & Place Order</button>
+          <button type="submit">Proceed to Payment</button>
         </form>
       </motion.div>
-
       <div className="order-history">
         <h3>Your Order History</h3>
         <table>
@@ -156,7 +161,7 @@ const DashboardPage = () => {
             {orders.length > 0 ? (
               orders.map(order => (
                 <tr key={order._id}>
-                  <td>{order.fileName}</td>
+                  <td>{order.fileName || 'Product Order'}</td>
                   <td>{order.location}</td>
                   <td>₹{order.amount}</td>
                   <td><span className={`status ${order.status.toLowerCase().replace(/\s/g, '-')}`}>{order.status}</span></td>
@@ -174,3 +179,4 @@ const DashboardPage = () => {
 };
 
 export default DashboardPage;
+
