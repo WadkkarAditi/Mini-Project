@@ -34,7 +34,7 @@ const PaymentPage = () => {
 
             // 2. Open Razorpay Checkout
             const options = {
-                key: 'YOUR_RAZORPAY_KEY_ID', // Use your key ID
+                key: rzp_test_RFZkH7X0Yho4gZ, // Use your key ID
                 amount: razorpayOrder.amount,
                 currency: 'INR',
                 name: 'PrintJet',
