@@ -77,7 +77,7 @@ const DashboardPage = () => {
       );
 
       const options = {
-        key: 'YOUR_RAZORPAY_TEST_KEY_ID', // Replace with your key
+        key: 'rzp_test_RFZkH7X0Yho4gZ', // Replace with your key
         amount: razorpayOrder.amount,
         currency: 'INR',
         name: 'PrintJet',
@@ -91,7 +91,7 @@ const DashboardPage = () => {
           fetchOrders();
         },
         prefill: { name: user.result.name, contact: newOrderData.contactNo },
-        theme: { color: '#e94560' }
+        theme: { color: '#120104ff' }
       };
 
       const rzp1 = new window.Razorpay(options);
