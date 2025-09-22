@@ -59,7 +59,7 @@ const CartPage = () => {
             );
 
             const options = {
-                key: 'YOUR_RAZORPAY_TEST_KEY_ID', // Replace with your key
+                key: 'rzp_test_RFZkH7X0Yho4gZ', // Replace with your key
                 amount: razorpayOrder.amount,
                 currency: 'INR',
                 name: 'PrintJet',

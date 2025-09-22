@@ -14,7 +14,14 @@ const LoginPage = () => {
     try {
       const { data } = await axios.post('http://localhost:5000/api/auth/login', formData);
       localStorage.setItem('profile', JSON.stringify(data));
-      window.location.href = '/services';
+      console.log(data.result)
+      if (data.role == "admin") {
+        window.location.href = '/admin';
+
+      } else {
+
+        window.location.href = '/services';
+      }
     } catch (error) {
       alert(error.response?.data?.message || 'Login failed.');
     }
@@ -22,13 +29,14 @@ const LoginPage = () => {
 
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-        const { data } = await axios.post('http://localhost:5000/api/auth/google-login', {
-            token: credentialResponse.credential
-        });
-        localStorage.setItem('profile', JSON.stringify(data));
-        window.location.href = '/services';
+      const { data } = await axios.post('http://localhost:5000/api/auth/google-login', {
+        token: credentialResponse.credential
+      });
+      localStorage.setItem('profile', JSON.stringify(data));
+      console.log(data.result)
+      window.location.href = '/services';
     } catch (error) {
-        console.error("Google Login Failed", error);
+      console.error("Google Login Failed", error);
     }
   };
 
